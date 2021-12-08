@@ -1,4 +1,4 @@
-# vue-m1
+# vue-vuetify-calendar-drag-n-drop-demo
 
 ## Project setup
 ```
