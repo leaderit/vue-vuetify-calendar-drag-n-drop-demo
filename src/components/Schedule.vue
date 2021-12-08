@@ -64,17 +64,43 @@
           @mouseleave.native="cancelDrag"
         >
           <template v-slot:event="{ event, timed, eventSummary }">
-            <div
-              class="v-event-draggable"
-              v-html="eventSummary()"
-            ></div>
-            <div
-              v-if="timed"
-              class="v-event-drag-bottom"
-              @mousedown.stop="extendBottom(event)"
-            ></div>
+            <div>
+              <div
+                class="v-event-draggable"
+                v-html="eventSummary()"
+              >
+              <br><br>
+              </div>
+              <div
+                v-if="timed"
+                class="v-event-drag-bottom"
+                @mousedown.stop="extendBottom(event)"
+              >
+              </div>
+              <div v-if="false">
+              <v-btn
+                fab
+                dark
+                x-small
+                color="green"
+                @click="event_edit( event )"
+              >
+                <v-icon>mdi-pencil</v-icon>
+              </v-btn>
+              <v-btn
+                fab
+                dark
+                x-small
+                color="red"
+                @click="event_delete( event )"
+              >
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+              </div>                       
+            </div>
           </template>
           
+          <!-- ШАПКА С ФОТО -->
           <template v-slot:category="obj">
             <v-card class="mx-auto">
               <v-card-title class="justify-center">
@@ -100,9 +126,18 @@
   </v-row>
   </div>
   <div>
+    <v-overlay
+    opacity="0.5"
+    z-index="5"
+    absolute=""
+    :value="edit"
+    >
     <ScheduleForm
-    
+    :eventData="e"
+    v-on:edit-cancel="event_edit_cancel"
+    v-on:edit-save="event_edit_save"
     ></ScheduleForm>
+    </v-overlay>
   </div>
 </div>
 </template>
@@ -119,6 +154,7 @@ export default {
   data: () => ({   
     focus: '',
     events: [],
+    e: null,
     dragEvent: null,
     dragStart: null,
     createEvent: null,
@@ -162,6 +198,26 @@ export default {
       fetchWorkers: 'fetch'
     }),
 
+    event_edit( e ){
+      this.e = e
+      this.edit = true
+    },
+
+    event_edit_cancel()
+    {
+      this.edit = false
+    },
+
+    async event_edit_save( e )
+    {
+      await this.setSelected( e )
+      this.edit = false
+    },
+
+    event_delete( e ){
+      console.log('del', e)
+    },
+
     getEventColor (event) {
       return event.color
     },
@@ -190,7 +246,6 @@ export default {
     clickEvent( { event })
     {
       this.setSelected( event )
-      // console.log( event )
     },
 
     startDrag ({ event, timed }) {
