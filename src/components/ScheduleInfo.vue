@@ -39,7 +39,6 @@ export default {
   name: 'Menu',
 
   data: () => ({
-    ecosystem: [],
     items: [
       { title: 'Услуга', icon: 'mdi-view-dashboard' },
       { title: 'Клиент', icon: 'mdi-image' },
@@ -51,11 +50,11 @@ export default {
     ... mapState('schedules', [ 'selected' ]),  
   },
   watch: {
-    selected( v, oldValue ) {
+    selected( v ) {
       this.items[0].title = v.name
       if ( v.client ) {
         this.items[1].title = v.client.name
-        this.items[2].title = v.info
+        this.items[2].title = v.info 
       } else {
         this.items[1].title = ''
         this.items[2].title = ''

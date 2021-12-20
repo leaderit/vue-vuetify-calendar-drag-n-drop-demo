@@ -105,7 +105,6 @@ import { mapState, mapActions } from 'vuex'
     
     watch: {
       eventData( newValue ) {
-        console.log('new.e', newValue)
         this.e = newValue
       },
     },

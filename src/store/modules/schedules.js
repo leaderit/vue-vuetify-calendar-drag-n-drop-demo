@@ -37,7 +37,7 @@ function fakeEvents ( start, end, categories ) {
       end: second,
       color: colors[ rnd(0, colors.length - 1)],
       timed: !allDay,
-      category: categories[ rnd(0, categories.length - 1)],
+      category: categories[ rnd(0, categories.length - 1)].id,
     })
   }
 
@@ -75,6 +75,11 @@ const actions = {
     commit('eventAdd', data)
   },
 
+  async eventDel({ commit }, data )
+  {
+    commit('eventDel', data)
+  },
+
   setSchedule( { commit }, data )
   {
     commit('setSchedule', data)
@@ -101,6 +106,12 @@ const mutations = {
   eventAdd (state, data) {
     state.schedule.push( data )
   },
+
+  eventDel (state, data) {
+    const index = state.schedule.indexOf(data);    
+    if (index > -1) state.schedule.splice(index, 1);
+    // state.selected = null
+  },  
 
   setDay( state, data )
   {

@@ -27,8 +27,7 @@ const fakeWorkers = [
 
 // initial state
 const state = () => ({
-  workers: {},
-  groups: []
+  workers: [],
 })
 
 // getters
@@ -37,17 +36,7 @@ const getters = {}
 // actions
 const actions = {
   async fetch ({ commit }) {
-    // Запросить данные с сервера
-    let data = {}
-    let groups = []
-    // преобразовать обьекты
-    fakeWorkers.forEach( element => {
-      groups.push( element.id )
-      data[ element.id ] = element
-    })
-
-    commit('setGroups', groups)
-    commit('setWorkers', data)
+    commit('setWorkers', fakeWorkers)
   }
 }
 
@@ -55,11 +44,7 @@ const actions = {
 const mutations = {
   setWorkers (state, data) {
     state.workers = data
-  },
-
-  setGroups (state, data) {
-    state.groups = data
-  },  
+  }, 
 }
 
 export default {

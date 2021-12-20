@@ -51,7 +51,9 @@
           color="primary"
           type="category"
           category-show-all
-          :categories="categories"
+          category-for-invalid="Не назначено"
+          category-text="id"
+          :categories="workers"
           :events="events"
           :event-color="getEventColor"
           :event-ripple="false"
@@ -64,39 +66,26 @@
           @mouseleave.native="cancelDrag"
         >
           <template v-slot:event="{ event, timed, eventSummary }">
-            <div>
+            <div class="d-flex flex-row mb-6">
               <div
                 class="v-event-draggable"
                 v-html="eventSummary()"
               >
-              <br><br>
               </div>
+
               <div
                 v-if="timed"
                 class="v-event-drag-bottom"
                 @mousedown.stop="extendBottom(event)"
               >
               </div>
-              <div v-if="false">
-              <v-btn
-                fab
-                dark
-                x-small
-                color="green"
-                @click="event_edit( event )"
+              <v-spacer></v-spacer>
+              <ContextMenu
+                :data="event"
+                :items="contextMenuItems"
+                v-on:context-menu="onContextMenu"
               >
-                <v-icon>mdi-pencil</v-icon>
-              </v-btn>
-              <v-btn
-                fab
-                dark
-                x-small
-                color="red"
-                @click="event_delete( event )"
-              >
-                <v-icon>mdi-delete</v-icon>
-              </v-btn>
-              </div>                       
+              </ContextMenu>
             </div>
           </template>
           
@@ -106,16 +95,16 @@
               <v-card-title class="justify-center">
                 <v-avatar size="50px">
                   <img
-                    v-if="workers[obj.category].img"
-                    :src="'/pic/'+workers[obj.category].img"
+                    v-if="obj.category.img"
+                    :src="'/pic/'+obj.category.img"
                   />
                   <v-icon v-else>mdi-account</v-icon>
                 </v-avatar>
                 <br>
-              {{ workers[obj.category].name }}
+              {{ obj.category.name }}
               </v-card-title>
             <v-card-subtitle class="pb-0 text-center">
-              {{ workers[obj.category].descr }}
+              {{ obj.category.descr }}
             </v-card-subtitle>
             </v-card>
           </template>   
@@ -144,12 +133,14 @@
 
 <script>
 import ScheduleForm from '@/components/ScheduleForm'
+import ContextMenu from '@/components/ContextMenu'
 import { mapState, mapActions } from 'vuex'
 
 
 export default {
   components: {
-    ScheduleForm
+    ScheduleForm,
+    ContextMenu
   },  
   data: () => ({   
     focus: '',
@@ -160,7 +151,12 @@ export default {
     createEvent: null,
     createStart: null,
     extendOriginal: null, 
-    edit: false,     
+    edit: false, 
+    
+    contextMenuItems: [
+      { id:'edit', title: 'Изменить', icon:'mdi-pencil' },
+      { id:'delete', title: 'Удалить', icon:'mdi-window-close' },
+    ],    
   }),
 
   watch: {
@@ -177,7 +173,6 @@ export default {
     ... mapState('schedules', [ 'day', 'schedule', 'names', 'colors' ]),
     ... mapState('workers', {
       workers: 'workers', 
-      categories: 'groups'
     }),
   },
 
@@ -191,6 +186,7 @@ export default {
       setDay: 'setDay',
       fetchSchedule: 'fetch',
       eventAdd: 'eventAdd',
+      eventDel: 'eventDel',
       setSelected: 'setSelected'
     }),
 
@@ -198,9 +194,14 @@ export default {
       fetchWorkers: 'fetch'
     }),
 
-    event_edit( e ){
-      this.e = e
-      this.edit = true
+    onContextMenu( e ) {
+      if (e.command.id=='edit') {
+        this.e = e.obj
+        this.edit = true
+      }
+      if (e.command.id=='delete') {
+        this.eventDel( e.obj )
+      }
     },
 
     event_edit_cancel()
@@ -210,12 +211,8 @@ export default {
 
     async event_edit_save( e )
     {
-      await this.setSelected( e )
+      this.setSelected( e )
       this.edit = false
-    },
-
-    event_delete( e ){
-      console.log('del', e)
     },
 
     getEventColor (event) {
@@ -238,7 +235,7 @@ export default {
     async fetchEvents ({ start, end }) {
       // console.log('fetch events')
       await this.fetchWorkers()
-      await this.fetchSchedule( { start, end, categories: this.categories } )
+      await this.fetchSchedule( { start, end, categories: this.workers } )
 
       this.events = this.schedule
     },
@@ -258,7 +255,6 @@ export default {
 
     startTime (tms) {
       const mouse = this.toTime(tms)
-
       if (this.dragEvent && this.dragTime === null) {
         const start = this.dragEvent.start
         this.dragTime = mouse - start
@@ -270,12 +266,11 @@ export default {
           start: this.createStart,
           end: this.createStart,
           timed: true,
-          client: null,
-          info:'',
-          category: tms.category,
+          client: { name:'no name', id:null },
+          info:'нет информации',
+          category: tms.category.id,
         }
         this.eventAdd( this.createEvent )
-        this.events = this.schedule
       }
     },
     
